@@ -37,7 +37,7 @@ jobs:
       # 4. بناء تطبيق الويب (Release Build)
       # نستخدم BASE_HREF لضمان تحميل جميع ملفات JavaScript والأصول بشكل صحيح
       - name: Build Flutter Web Release
-        run: flutter build web --release --base-href ${{ env.BASE_HREF }}
+        run: flutter build web --release --base-href ${{ env.BASE_HREF }} --no-tree-shake-icons
 
       # 5. نشر محتوى مجلد build/web إلى فرع gh-pages
       # يتم استخدام أداة peaceiris/actions-gh-pages لهذا الغرض
