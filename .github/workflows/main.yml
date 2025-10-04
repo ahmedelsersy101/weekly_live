@@ -1,0 +1,52 @@
+# اسم الـ Workflow، سيظهر في تبويب "Actions"
+name: Deploy Flutter Web to GitHub Pages
+
+# تحديد متى يتم تشغيل الـ Workflow
+on:
+  push:
+    branches:
+      - main  # سيتم التشغيل عند الدفع (Push) إلى الفرع الرئيسي (main)
+
+# تحديد المتغيرات البيئية لاستخدامها في عملية البناء
+env:
+  # **هام جداً**: هذا المتغير يحدد المسار الأساسي (Base path) للـ assets.
+  # ويجب أن يكون "/اسم_المستودع/"
+  BASE_HREF: /weekly_live/
+
+# تعريف الوظائف
+jobs:
+  build_and_deploy:
+    # سيتم تشغيل هذه الوظيفة على نظام تشغيل Ubuntu
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 1. سحب كود المشروع
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # 2. إعداد بيئة Flutter
+      - name: Setup Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable' # يمكنك تحديد إصدار معين مثل '3.22.0'
+      
+      # 3. جلب الحزم (Dependencies)
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      # 4. بناء تطبيق الويب (Release Build)
+      # نستخدم BASE_HREF لضمان تحميل جميع ملفات JavaScript والأصول بشكل صحيح
+      - name: Build Flutter Web Release
+        run: flutter build web --release --base-href ${{ env.BASE_HREF }}
+
+      # 5. نشر محتوى مجلد build/web إلى فرع gh-pages
+      # يتم استخدام أداة peaceiris/actions-gh-pages لهذا الغرض
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          # الـ GITHUB_TOKEN يتم إنشاؤه تلقائياً بواسطة GitHub لمنح صلاحية النشر
+          github_token: ${{ secrets.GITHUB_TOKEN }} 
+          # المجلد الذي سيتم نشره
+          publish_dir: ./build/web
+          # الفرع الذي سيتم النشر عليه (يجب تفعيله في إعدادات Pages)
+          publish_branch: gh-pages
